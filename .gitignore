@@ -1,0 +1,10 @@
+node_modules/
+config.json
+dist/
+package-lock.json
+.env
+trashcan/
+.pnpm-debug.log
+
+rvyx.sqlite
+rvyx.sqlite-journal
