@@ -1,18 +1,8 @@
-import { Client, Intents, MessageEmbed } from "discord.js";
+import { Client, MessageEmbed } from "discord.js";
 import { config } from "dotenv";
+import { intents } from "./utils";
 
 config();
-
-const intents = [
-  Intents.FLAGS.GUILDS,
-  Intents.FLAGS.GUILD_MEMBERS,
-  Intents.FLAGS.GUILD_EMOJIS_AND_STICKERS,
-  Intents.FLAGS.GUILD_VOICE_STATES,
-  Intents.FLAGS.GUILD_PRESENCES,
-  Intents.FLAGS.GUILD_MESSAGES,
-  Intents.FLAGS.GUILD_MESSAGE_REACTIONS,
-  Intents.FLAGS.DIRECT_MESSAGES,
-];
 
 const client = new Client({
   intents: intents,
@@ -20,7 +10,9 @@ const client = new Client({
 
 client.login(process.env.TOKEN);
 
-client.once("ready", () => console.log("hi we are rolling now"));
+client.once("ready", () => {
+  console.log("hi we are rolling now");
+});
 
 client.on("messageReactionAdd", async (reaction, user) => {
   if (reaction.message.partial) await reaction.message.fetch();
@@ -64,5 +56,22 @@ client.on("messageReactionAdd", async (reaction, user) => {
     }
 
     user.send({ embeds: [embed] });
+  }
+});
+
+client.on("messageReactionRemove", async (reaction, user) => {
+  if (reaction.message.partial) await reaction.message.fetch();
+  if (reaction.partial) await reaction.fetch();
+  if (user.bot) return;
+  if (!reaction.message.guild) return;
+  if (reaction.emoji.name === "🔖") {
+    await user.dmChannel?.messages.fetch().then(async (msg) => {
+      const filtered = msg.filter((m) =>
+        m.embeds.forEach((em) => em.fields.find((field) => field.name === "Full Message")?.value === reaction.message.content),
+      );
+      console.log(filtered);
+      if (!filtered) return;
+      filtered.forEach(async (m) => await m.delete());
+    });
   }
 });
